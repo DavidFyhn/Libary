@@ -9,6 +9,10 @@ builder.Services.AddDbContext<NeondbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IGenreService, GenreService>();
+
+builder.Services.AddControllers();
 
 builder.Services.AddCors();
 
@@ -33,6 +37,6 @@ app.UseCors(config => config
     .AllowAnyOrigin()
     .SetIsOriginAllowed(x => true));
 
-app.MapGet("/", () => "Hello World!");
+app.MapControllers();
 
 app.Run();
