@@ -4,27 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddDbContext<NeondbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IAuthorService, AuthorService>();
-builder.Services.AddScoped<IGenreService, GenreService>();
-
-builder.Services.AddControllers();
-
-builder.Services.AddCors();
-
-// Add NSwag services
-builder.Services.AddOpenApiDocument(settings =>
-{
-    settings.Title = "Library API";
-});
+ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi();
@@ -40,3 +23,25 @@ app.UseCors(config => config
 app.MapControllers();
 
 app.Run();
+
+public partial class Program
+{
+    public static void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddDbContext<NeondbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        services.AddScoped<IBookService, BookService>();
+        services.AddScoped<IAuthorService, AuthorService>();
+        services.AddScoped<IGenreService, GenreService>();
+
+        services.AddControllers();
+
+        services.AddCors();
+        
+        services.AddOpenApiDocument(settings =>
+        {
+            settings.Title = "Library API";
+        });
+    }
+}
