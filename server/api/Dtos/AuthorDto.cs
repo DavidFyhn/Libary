@@ -1,10 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace api.Dtos;
+﻿namespace api.Dtos;
 
 public class AuthorDto
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
     public List<string> BookIds { get; set; } = new();
 }

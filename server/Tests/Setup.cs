@@ -26,10 +26,9 @@ public class Setup : WebApplicationFactory<Program>, IAsyncLifetime
     {
         builder.ConfigureTestServices(services =>
         {
-            // Remove the original DbContext registration
+     
             services.RemoveAll(typeof(DbContextOptions<NeondbContext>));
-
-            // Add a new DbContext registration that uses the test container's connection string
+           
             services.AddDbContext<NeondbContext>(options =>
             {
                 options.UseNpgsql(_dbContainer.GetConnectionString());
