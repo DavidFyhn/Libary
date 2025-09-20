@@ -1,6 +1,9 @@
 using api.Services;
 using DataAccess.Data;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +39,10 @@ public partial class Program
         services.AddScoped<IGenreService, GenreService>();
 
         services.AddControllers();
+
+        // Add FluentValidation services
+        services.AddFluentValidationAutoValidation();
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddCors();
         
