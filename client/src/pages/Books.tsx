@@ -1,8 +1,8 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useAtom } from 'jotai';
-import { booksAtom, Book } from '../atoms/bookAtoms';
-import { authorsAtom } from '../atoms/authorAtoms';
-import { genresAtom } from '../atoms/genreAtoms';
+import { booksAtom, type Book } from '../atoms/bookAtoms';
+import { authorsAtom, type Author } from '../atoms/authorAtoms';
+import { genresAtom, type Genre } from '../atoms/genreAtoms';
 import { BooksClient, AuthorsClient, GenresClient, BookDto } from '../api/client';
 import { baseUrl } from '../baseUrl';
 
@@ -12,6 +12,53 @@ const initialFormData = {
   genreId: undefined as string | undefined,
   authorIds: [] as string[],
 };
+
+// THE DEFINITIVE FIX: Move the form component outside the main component
+const BookForm = ({ 
+  formData, 
+  genres, 
+  authors, 
+  handleFormChange, 
+  handlePagesChange,
+  onSubmit, 
+  onCancel 
+}: { 
+  formData: typeof initialFormData, 
+  genres: Genre[], 
+  authors: Author[],
+  handleFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
+  handlePagesChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+  onSubmit: (e: React.FormEvent) => void, 
+  onCancel: () => void 
+}) => (
+  <form onSubmit={onSubmit}>
+    <div className="form-control">
+      <label className="label"><span className="label-text">Title</span></label>
+      <input type="text" name="title" placeholder="Book Title" className="input input-bordered" value={formData.title} onChange={handleFormChange} required />
+    </div>
+    <div className="form-control">
+      <label className="label"><span className="label-text">Pages</span></label>
+      <input type="number" name="pages" placeholder="Number of Pages" className="input input-bordered" value={formData.pages} onChange={handlePagesChange} required />
+    </div>
+    <div className="form-control">
+      <label className="label"><span className="label-text">Genre</span></label>
+      <select name="genreId" className="select select-bordered" value={formData.genreId || ''} onChange={handleFormChange}>
+        <option disabled value="">Select a genre</option>
+        {genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}
+      </select>
+    </div>
+    <div className="form-control">
+      <label className="label"><span className="label-text">Authors</span></label>
+      <select multiple name="authorIds" className="select select-bordered" value={formData.authorIds} onChange={handleFormChange}>
+        {authors.map(author => <option key={author.id} value={author.id}>{author.name}</option>)}
+      </select>
+    </div>
+    <div className="modal-action mt-4">
+      <button type="button" className="btn" onClick={onCancel}>Close</button>
+      <button type="submit" className="btn btn-primary">Save</button>
+    </div>
+  </form>
+);
 
 export default function Books() {
   const [books, setBooks] = useAtom(booksAtom);
@@ -31,25 +78,34 @@ export default function Books() {
   const authorsClient = new AuthorsClient(baseUrl);
   const genresClient = new GenresClient(baseUrl);
 
+  const fetchBooks = useCallback(async () => {
+    try {
+      const fetchedBooks = await booksClient.getBooks();
+      setBooks(fetchedBooks);
+    } catch (error) {
+      console.error("Failed to fetch books:", error);
+    }
+  }, [booksClient, setBooks]);
+
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchInitialData = async () => {
       try {
-        if (books.length === 0) setBooks(await booksClient.getBooks());
+        if (books.length === 0) await fetchBooks();
         if (authors.length === 0) setAuthors(await authorsClient.getAuthors());
         if (genres.length === 0) setGenres(await genresClient.getGenres());
       } catch (error) {
-        console.error("Failed to fetch data:", error);
+        console.error("Failed to fetch initial data:", error);
       }
     };
-    fetchAllData();
-  }, []);
+    fetchInitialData();
+  }, [books.length, authors.length, genres.length, fetchBooks, authorsClient, genresClient, setAuthors, setGenres]);
 
   const handleCreateBook = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const newBookDto = new BookDto(formData);
-      const createdBook = await booksClient.postBook(newBookDto);
-      setBooks([...books, createdBook as Book]);
+      await booksClient.postBook(newBookDto);
+      await fetchBooks();
       setIsCreateModalOpen(false);
     } catch (error) {
       console.error("Failed to create book:", error);
@@ -62,7 +118,7 @@ export default function Books() {
     try {
       const updatedDto = new BookDto(formData);
       await booksClient.putBook(editingBook.id, updatedDto);
-      setBooks(books.map(b => b.id === editingBook.id ? { ...editingBook, ...formData } : b));
+      await fetchBooks();
       setIsEditModalOpen(false);
       setEditingBook(null);
     } catch (error) {
@@ -74,7 +130,7 @@ export default function Books() {
     if (!deletingBookId) return;
     try {
       await booksClient.deleteBook(deletingBookId);
-      setBooks(books.filter(b => b.id !== deletingBookId));
+      await fetchBooks();
       setIsDeleteModalOpen(false);
       setDeletingBookId(null);
     } catch (error) {
@@ -118,36 +174,10 @@ export default function Books() {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
-  
-  const BookForm = ({ onSubmit, onCancel }: { onSubmit: (e: React.FormEvent) => void, onCancel: () => void }) => (
-    <form onSubmit={onSubmit}>
-      <div className="form-control">
-        <label className="label"><span className="label-text">Title</span></label>
-        <input type="text" name="title" placeholder="Book Title" className="input input-bordered" value={formData.title} onChange={handleFormChange} required />
-      </div>
-      <div className="form-control">
-        <label className="label"><span className="label-text">Pages</span></label>
-        <input type="number" name="pages" placeholder="Number of Pages" className="input input-bordered" value={formData.pages} onChange={(e) => setFormData(prev => ({...prev, pages: parseInt(e.target.value)}))} required />
-      </div>
-      <div className="form-control">
-        <label className="label"><span className="label-text">Genre</span></label>
-        <select name="genreId" className="select select-bordered" value={formData.genreId || ''} onChange={handleFormChange}>
-          <option disabled value="">Select a genre</option>
-          {genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}
-        </select>
-      </div>
-      <div className="form-control">
-        <label className="label"><span className="label-text">Authors</span></label>
-        <select multiple name="authorIds" className="select select-bordered" value={formData.authorIds} onChange={handleFormChange}>
-          {authors.map(author => <option key={author.id} value={author.id}>{author.name}</option>)}
-        </select>
-      </div>
-      <div className="modal-action mt-4">
-        <button type="button" className="btn" onClick={onCancel}>Close</button>
-        <button type="submit" className="btn btn-primary">Save</button>
-      </div>
-    </form>
-  );
+
+  const handlePagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({...prev, pages: parseInt(e.target.value) || 0}));
+  };
 
   return (
     <div>
@@ -186,7 +216,15 @@ export default function Books() {
       <dialog className={`modal ${isCreateModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg mb-4">Create a New Book</h3>
-          <BookForm onSubmit={handleCreateBook} onCancel={() => setIsCreateModalOpen(false)} />
+          <BookForm 
+            formData={formData} 
+            genres={genres} 
+            authors={authors} 
+            handleFormChange={handleFormChange}
+            handlePagesChange={handlePagesChange}
+            onSubmit={handleCreateBook} 
+            onCancel={() => setIsCreateModalOpen(false)} 
+          />
         </div>
       </dialog>
 
@@ -194,7 +232,17 @@ export default function Books() {
       <dialog className={`modal ${isEditModalOpen ? 'modal-open' : ''}`}>
         <div className="modal-box">
           <h3 className="font-bold text-lg mb-4">Edit Book</h3>
-          {editingBook && <BookForm onSubmit={handleUpdateBook} onCancel={() => setIsEditModalOpen(false)} />}
+          {editingBook && 
+            <BookForm 
+              formData={formData} 
+              genres={genres} 
+              authors={authors} 
+              handleFormChange={handleFormChange}
+              handlePagesChange={handlePagesChange}
+              onSubmit={handleUpdateBook} 
+              onCancel={() => setIsEditModalOpen(false)} 
+            />
+          }
         </div>
       </dialog>
 

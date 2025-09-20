@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useAtom } from 'jotai';
-import { authorsAtom, Author } from '../atoms/authorAtoms';
+import { authorsAtom, type Author } from '../atoms/authorAtoms';
 import { AuthorsClient, AuthorDto } from '../api/client';
 import { baseUrl } from '../baseUrl';
 
@@ -19,27 +19,29 @@ export default function Authors() {
 
   const client = new AuthorsClient(baseUrl);
 
-  useEffect(() => {
-    const fetchAuthors = async () => {
-      try {
-        const fetchedAuthors = await client.getAuthors();
-        setAuthors(fetchedAuthors);
-      } catch (error) {
-        console.error("Failed to fetch authors:", error);
-      }
-    };
+  const fetchAuthors = useCallback(async () => {
+    try {
+      const fetchedAuthors = await client.getAuthors();
+      setAuthors(fetchedAuthors);
+    } catch (error) {
+      console.error("Failed to fetch authors:", error);
+    }
+  }, [client, setAuthors]);
 
+  useEffect(() => {
     if (authors.length === 0) {
         fetchAuthors();
     }
-  }, [authors.length, setAuthors]);
+  }, [authors.length, fetchAuthors]);
 
   const handleCreateAuthor = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const newAuthorDto = new AuthorDto({ name: newAuthorName });
-      const createdAuthor = await client.postAuthor(newAuthorDto);
-      setAuthors([...authors, createdAuthor as Author]);
+      await client.postAuthor(newAuthorDto);
+      
+      await fetchAuthors();
+
       setNewAuthorName('');
       setIsCreateModalOpen(false);
     } catch (error) {
@@ -53,7 +55,9 @@ export default function Authors() {
     try {
       const updatedDto = new AuthorDto({ name: editingAuthorName });
       await client.putAuthor(editingAuthor.id, updatedDto);
-      setAuthors(authors.map(a => a.id === editingAuthor.id ? { ...a, name: editingAuthorName } : a));
+
+      await fetchAuthors();
+
       setIsEditModalOpen(false);
       setEditingAuthor(null);
     } catch (error) {
@@ -65,7 +69,9 @@ export default function Authors() {
     if (!deletingAuthorId) return;
     try {
       await client.deleteAuthor(deletingAuthorId);
-      setAuthors(authors.filter(a => a.id !== deletingAuthorId));
+
+      await fetchAuthors();
+
       setIsDeleteModalOpen(false);
       setDeletingAuthorId(null);
     } catch (error) {

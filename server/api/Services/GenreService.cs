@@ -30,8 +30,13 @@ namespace api.Services
             _context.Genres.Add(genre);
             await _context.SaveChangesAsync();
 
-            genreDto.Id = genre.Id;
-            return genreDto;
+            // THE DEFINITIVE FIX
+            return new GenreDto
+            {
+                Id = genre.Id,
+                Name = genre.Name,
+                BookIds = genreDto.BookIds ?? new List<string>() // Use the original DTO's list safely
+            };
         }
 
         public async Task<bool> DeleteGenreAsync(string id)

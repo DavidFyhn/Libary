@@ -4,6 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using System.Text.Json.Serialization; // ** ADD THIS USING STATEMENT **
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,7 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
+// ... (rest of the file is unchanged) ...
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi();
@@ -38,7 +40,12 @@ public partial class Program
         services.AddScoped<IAuthorService, AuthorService>();
         services.AddScoped<IGenreService, GenreService>();
 
-        services.AddControllers();
+        // ** THE FIX IS HERE **
+        services.AddControllers().AddJsonOptions(options =>
+        {
+            // Ignore cyclic dependencies during JSON serialization
+            options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        });
 
         // Add FluentValidation services
         services.AddFluentValidationAutoValidation();

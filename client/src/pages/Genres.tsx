@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useState, useCallback } from 'react';
 import { useAtom } from 'jotai';
-import { genresAtom, Genre } from '../atoms/genreAtoms';
+import { genresAtom, type Genre } from '../atoms/genreAtoms';
 import { GenresClient, GenreDto } from '../api/client';
 import { baseUrl } from '../baseUrl';
 
@@ -19,27 +19,29 @@ export default function Genres() {
 
   const client = new GenresClient(baseUrl);
 
-  useEffect(() => {
-    const fetchGenres = async () => {
-      try {
-        const fetchedGenres = await client.getGenres();
-        setGenres(fetchedGenres);
-      } catch (error) {
-        console.error("Failed to fetch genres:", error);
-      }
-    };
+  const fetchGenres = useCallback(async () => {
+    try {
+      const fetchedGenres = await client.getGenres();
+      setGenres(fetchedGenres);
+    } catch (error) {
+      console.error("Failed to fetch genres:", error);
+    }
+  }, [client, setGenres]);
 
+  useEffect(() => {
     if (genres.length === 0) {
         fetchGenres();
     }
-  }, [genres.length, setGenres]);
+  }, [genres.length, fetchGenres]);
 
   const handleCreateGenre = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const newGenreDto = new GenreDto({ name: newGenreName });
-      const createdGenre = await client.postGenre(newGenreDto);
-      setGenres([...genres, createdGenre as Genre]);
+      await client.postGenre(newGenreDto);
+      
+      await fetchGenres();
+
       setNewGenreName('');
       setIsCreateModalOpen(false);
     } catch (error) {
@@ -53,7 +55,9 @@ export default function Genres() {
     try {
       const updatedDto = new GenreDto({ name: editingGenreName });
       await client.putGenre(editingGenre.id, updatedDto);
-      setGenres(genres.map(g => g.id === editingGenre.id ? { ...g, name: editingGenreName } : g));
+
+      await fetchGenres();
+
       setIsEditModalOpen(false);
       setEditingGenre(null);
     } catch (error) {
@@ -65,7 +69,9 @@ export default function Genres() {
     if (!deletingGenreId) return;
     try {
       await client.deleteGenre(deletingGenreId);
-      setGenres(genres.filter(g => g.id !== deletingGenreId));
+
+      await fetchGenres();
+
       setIsDeleteModalOpen(false);
       setDeletingGenreId(null);
     } catch (error) {

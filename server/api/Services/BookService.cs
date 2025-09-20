@@ -40,8 +40,15 @@ namespace api.Services
             _context.Books.Add(book);
             await _context.SaveChangesAsync();
 
-            bookDto.Id = book.Id;
-            return bookDto;
+            // THE DEFINITIVE FIX
+            return new BookDto
+            {
+                Id = book.Id,
+                Title = book.Title,
+                Pages = book.Pages,
+                GenreId = book.Genreid,
+                AuthorIds = bookDto.AuthorIds ?? new List<string>() // Use the original DTO's list safely
+            };
         }
 
         public async Task<bool> DeleteBookAsync(string id)
