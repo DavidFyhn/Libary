@@ -1,9 +1,9 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback, type ChangeEvent, type FormEvent } from 'react';
 import { useAtom } from 'jotai';
 import { booksAtom, type Book } from '../atoms/bookAtoms';
 import { authorsAtom, type Author } from '../atoms/authorAtoms';
 import { genresAtom, type Genre } from '../atoms/genreAtoms';
-import { BooksClient, AuthorsClient, GenresClient, BookDto } from '../api/client';
+import { BooksClient, AuthorsClient, GenresClient, BookDto, AuthorDto, GenreDto } from '../api/client';
 import { baseUrl } from '../baseUrl';
 
 const initialFormData = {
@@ -13,7 +13,6 @@ const initialFormData = {
   authorIds: [] as string[],
 };
 
-// THE DEFINITIVE FIX: Move the form component outside the main component
 const BookForm = ({ 
   formData, 
   genres, 
@@ -26,9 +25,9 @@ const BookForm = ({
   formData: typeof initialFormData, 
   genres: Genre[], 
   authors: Author[],
-  handleFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
-  handlePagesChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
-  onSubmit: (e: React.FormEvent) => void, 
+  handleFormChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void,
+  handlePagesChange: (e: ChangeEvent<HTMLInputElement>) => void,
+  onSubmit: (e: FormEvent) => void, 
   onCancel: () => void 
 }) => (
   <form onSubmit={onSubmit}>
@@ -80,27 +79,49 @@ export default function Books() {
 
   const fetchBooks = useCallback(async () => {
     try {
-      const fetchedBooks = await booksClient.getBooks();
-      setBooks(fetchedBooks);
+      const fetchedBooks: BookDto[] = await booksClient.getBooks();
+      const mappedBooks: Book[] = fetchedBooks.map(bookDto => ({
+        id: bookDto.id!,
+        title: bookDto.title!,
+        pages: bookDto.pages!,
+        genreId: bookDto.genreId,
+        authorIds: bookDto.authorIds || [],
+      }));
+      setBooks(mappedBooks);
     } catch (error) {
       console.error("Failed to fetch books:", error);
     }
   }, [booksClient, setBooks]);
 
   useEffect(() => {
-    const fetchInitialData = async () => {
+    (async () => {
       try {
         if (books.length === 0) await fetchBooks();
-        if (authors.length === 0) setAuthors(await authorsClient.getAuthors());
-        if (genres.length === 0) setGenres(await genresClient.getGenres());
+        if (authors.length === 0) {
+          const fetchedAuthors: AuthorDto[] = await authorsClient.getAuthors();
+          const mappedAuthors: Author[] = fetchedAuthors.map(authorDto => ({
+            id: authorDto.id!,
+            name: authorDto.name!,
+            bookIds: authorDto.bookIds || [],
+          }));
+          setAuthors(mappedAuthors);
+        }
+        if (genres.length === 0) {
+          const fetchedGenres: GenreDto[] = await genresClient.getGenres();
+          const mappedGenres: Genre[] = fetchedGenres.map(genreDto => ({
+            id: genreDto.id!,
+            name: genreDto.name!,
+            bookIds: (genreDto as any).bookIds || [],
+          }));
+          setGenres(mappedGenres);
+        }
       } catch (error) {
         console.error("Failed to fetch initial data:", error);
       }
-    };
-    fetchInitialData();
+    })();
   }, [books.length, authors.length, genres.length, fetchBooks, authorsClient, genresClient, setAuthors, setGenres]);
 
-  const handleCreateBook = async (e: React.FormEvent) => {
+  const handleCreateBook = async (e: FormEvent) => {
     e.preventDefault();
     try {
       const newBookDto = new BookDto(formData);
@@ -112,7 +133,7 @@ export default function Books() {
     }
   };
 
-  const handleUpdateBook = async (e: React.FormEvent) => {
+  const handleUpdateBook = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingBook) return;
     try {
@@ -159,7 +180,7 @@ export default function Books() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleFormChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (e.target.tagName === 'SELECT' && (e.target as HTMLSelectElement).multiple) {
       const options = (e.target as HTMLSelectElement).options;
@@ -175,7 +196,7 @@ export default function Books() {
     }
   };
 
-  const handlePagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePagesChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({...prev, pages: parseInt(e.target.value) || 0}));
   };
 

@@ -1,21 +1,17 @@
-﻿FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /source
+﻿FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
+WORKDIR /src
+COPY ["./", "."]
+RUN dotnet publish "api/api.csproj" \
+    -c Release \
+    -o /app/publish \
+    --runtime linux-musl-x64 \
+    --self-contained true \
+    /p:PublishSingleFile=true
 
-COPY api/api.csproj ./api/
-COPY DataAccess/DataAccess.csproj ./DataAccess/
-
-RUN dotnet restore api/api.csproj
-
-COPY api/. ./api/
-COPY DataAccess/. ./DataAccess/
-
-WORKDIR /source/api
-RUN dotnet publish -c release -o /app
-
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-alpine
 WORKDIR /app
-COPY --from=build /app ./
-
+COPY --from=build /app/publish .
+ENV ASPNETCORE_URLS=http://0.0.0.0:8080/
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "api.dll"]
+ENTRYPOINT ["./api"]

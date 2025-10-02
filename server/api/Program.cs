@@ -4,7 +4,7 @@ using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using System.Text.Json.Serialization; // ** ADD THIS USING STATEMENT **
+using System.Text.Json.Serialization; 
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +12,9 @@ ConfigureServices(builder.Services, builder.Configuration);
 
 var app = builder.Build();
 
-// ... (rest of the file is unchanged) ...
-if (app.Environment.IsDevelopment())
-{
-    app.UseOpenApi();
-    app.UseSwaggerUi();
-}
+
+    
+
 
 app.UseCors(config => config
     .AllowAnyHeader()
@@ -26,6 +23,10 @@ app.UseCors(config => config
     .SetIsOriginAllowed(x => true));
 
 app.MapControllers();
+
+
+	app.UseOpenApi();
+    app.UseSwaggerUi();
 
 app.Run();
 
@@ -40,14 +41,14 @@ public partial class Program
         services.AddScoped<IAuthorService, AuthorService>();
         services.AddScoped<IGenreService, GenreService>();
 
-        // ** THE FIX IS HERE **
+        
         services.AddControllers().AddJsonOptions(options =>
         {
-            // Ignore cyclic dependencies during JSON serialization
+            
             options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         });
 
-        // Add FluentValidation services
+        
         services.AddFluentValidationAutoValidation();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 

@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for libaryserver on 2025-10-02T19:13:59+02:00
+# fly.toml app configuration file generated for libaryclient on 2025-10-02T19:05:22+02:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'libaryserver'
+app = 'libaryclient'
 primary_region = 'fra'
 
 [build]

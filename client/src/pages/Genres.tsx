@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import { useAtom } from 'jotai';
 import { genresAtom, type Genre } from '../atoms/genreAtoms';
 import { GenresClient, GenreDto } from '../api/client';
@@ -21,8 +21,13 @@ export default function Genres() {
 
   const fetchGenres = useCallback(async () => {
     try {
-      const fetchedGenres = await client.getGenres();
-      setGenres(fetchedGenres);
+      const fetchedGenres: GenreDto[] = await client.getGenres();
+      const mappedGenres: Genre[] = fetchedGenres.map(dto => ({
+          id: dto.id!,
+          name: dto.name!,
+          bookIds: dto.bookIds || []
+      }));
+      setGenres(mappedGenres);
     } catch (error) {
       console.error("Failed to fetch genres:", error);
     }
@@ -30,11 +35,11 @@ export default function Genres() {
 
   useEffect(() => {
     if (genres.length === 0) {
-        fetchGenres();
+        void fetchGenres();
     }
   }, [genres.length, fetchGenres]);
 
-  const handleCreateGenre = async (e: React.FormEvent) => {
+  const handleCreateGenre = async (e: FormEvent) => {
     e.preventDefault();
     try {
       const newGenreDto = new GenreDto({ name: newGenreName });
@@ -49,7 +54,7 @@ export default function Genres() {
     }
   };
 
-  const handleUpdateGenre = async (e: React.FormEvent) => {
+  const handleUpdateGenre = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingGenre) return;
     try {

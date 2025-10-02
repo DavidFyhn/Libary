@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, useCallback } from 'react';
+﻿import { useEffect, useState, useCallback, type FormEvent } from 'react';
 import { useAtom } from 'jotai';
 import { authorsAtom, type Author } from '../atoms/authorAtoms';
 import { AuthorsClient, AuthorDto } from '../api/client';
@@ -21,8 +21,13 @@ export default function Authors() {
 
   const fetchAuthors = useCallback(async () => {
     try {
-      const fetchedAuthors = await client.getAuthors();
-      setAuthors(fetchedAuthors);
+      const fetchedAuthors: AuthorDto[] = await client.getAuthors();
+      const mappedAuthors: Author[] = fetchedAuthors.map(dto => ({
+          id: dto.id!,
+          name: dto.name!,
+          bookIds: dto.bookIds || []
+      }));
+      setAuthors(mappedAuthors);
     } catch (error) {
       console.error("Failed to fetch authors:", error);
     }
@@ -30,11 +35,11 @@ export default function Authors() {
 
   useEffect(() => {
     if (authors.length === 0) {
-        fetchAuthors();
+        void fetchAuthors();
     }
   }, [authors.length, fetchAuthors]);
 
-  const handleCreateAuthor = async (e: React.FormEvent) => {
+  const handleCreateAuthor = async (e: FormEvent) => {
     e.preventDefault();
     try {
       const newAuthorDto = new AuthorDto({ name: newAuthorName });
@@ -49,7 +54,7 @@ export default function Authors() {
     }
   };
 
-  const handleUpdateAuthor = async (e: React.FormEvent) => {
+  const handleUpdateAuthor = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingAuthor) return;
     try {

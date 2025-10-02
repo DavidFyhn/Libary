@@ -10,7 +10,7 @@
 
 export class AuthorsClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    private readonly baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
@@ -18,54 +18,51 @@ export class AuthorsClient {
         this.baseUrl = baseUrl ?? "http://localhost:5067";
     }
 
-    getAuthors(): Promise<AuthorDto[]> {
+    async getAuthors(): Promise<AuthorDto[]> {
         let url_ = this.baseUrl + "/api/Authors";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAuthors(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetAuthors(_response);
     }
 
-    protected processGetAuthors(response: Response): Promise<AuthorDto[]> {
+    protected async processGetAuthors(response: Response): Promise<AuthorDto[]> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
-                for (let item of resultData200)
+                for (const item of resultData200)
                     result200!.push(AuthorDto.fromJS(item));
             }
             else {
-                result200 = <any>null;
+                result200 = null as any;
             }
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<AuthorDto[]>(null as any);
     }
 
-    postAuthor(authorDto: AuthorDto): Promise<AuthorDto> {
+    async postAuthor(authorDto: AuthorDto): Promise<AuthorDto> {
         let url_ = this.baseUrl + "/api/Authors";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(authorDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
@@ -74,67 +71,61 @@ export class AuthorsClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostAuthor(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPostAuthor(_response);
     }
 
-    protected processPostAuthor(response: Response): Promise<AuthorDto> {
+    protected async processPostAuthor(response: Response): Promise<AuthorDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
+        if (status === 200 || status === 201) {
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = AuthorDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<AuthorDto>(null as any);
     }
 
-    getAuthor(id: string): Promise<AuthorDto> {
+    async getAuthor(id: string): Promise<AuthorDto> {
         let url_ = this.baseUrl + "/api/Authors/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetAuthor(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetAuthor(_response);
     }
 
-    protected processGetAuthor(response: Response): Promise<AuthorDto> {
+    protected async processGetAuthor(response: Response): Promise<AuthorDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = AuthorDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<AuthorDto>(null as any);
     }
 
-    putAuthor(id: string, authorDto: AuthorDto): Promise<FileResponse> {
+    async putAuthor(id: string, authorDto: AuthorDto): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Authors/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -143,7 +134,7 @@ export class AuthorsClient {
 
         const content_ = JSON.stringify(authorDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "PUT",
             headers: {
@@ -152,17 +143,16 @@ export class AuthorsClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPutAuthor(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPutAuthor(_response);
     }
 
-    protected processPutAuthor(response: Response): Promise<FileResponse> {
+    protected async processPutAuthor(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -172,38 +162,36 @@ export class AuthorsClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    deleteAuthor(id: string): Promise<FileResponse> {
+    async deleteAuthor(id: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Authors/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "DELETE",
             headers: {
                 "Accept": "application/octet-stream"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteAuthor(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processDeleteAuthor(_response);
     }
 
-    protected processDeleteAuthor(response: Response): Promise<FileResponse> {
+    protected async processDeleteAuthor(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -213,9 +201,8 @@ export class AuthorsClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
@@ -223,7 +210,7 @@ export class AuthorsClient {
 
 export class BooksClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    private readonly baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
@@ -231,54 +218,51 @@ export class BooksClient {
         this.baseUrl = baseUrl ?? "http://localhost:5067";
     }
 
-    getBooks(): Promise<BookDto[]> {
+    async getBooks(): Promise<BookDto[]> {
         let url_ = this.baseUrl + "/api/Books";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetBooks(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetBooks(_response);
     }
 
-    protected processGetBooks(response: Response): Promise<BookDto[]> {
+    protected async processGetBooks(response: Response): Promise<BookDto[]> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
-                for (let item of resultData200)
+                for (const item of resultData200)
                     result200!.push(BookDto.fromJS(item));
             }
             else {
-                result200 = <any>null;
+                result200 = null as any;
             }
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<BookDto[]>(null as any);
     }
 
-    postBook(bookDto: BookDto): Promise<BookDto> {
+    async postBook(bookDto: BookDto): Promise<BookDto> {
         let url_ = this.baseUrl + "/api/Books";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(bookDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
@@ -287,67 +271,61 @@ export class BooksClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostBook(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPostBook(_response);
     }
 
-    protected processPostBook(response: Response): Promise<BookDto> {
+    protected async processPostBook(response: Response): Promise<BookDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
+        if (status === 200 || status === 201) {
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = BookDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<BookDto>(null as any);
     }
 
-    getBook(id: string): Promise<BookDto> {
+    async getBook(id: string): Promise<BookDto> {
         let url_ = this.baseUrl + "/api/Books/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetBook(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetBook(_response);
     }
 
-    protected processGetBook(response: Response): Promise<BookDto> {
+    protected async processGetBook(response: Response): Promise<BookDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = BookDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<BookDto>(null as any);
     }
 
-    putBook(id: string, bookDto: BookDto): Promise<FileResponse> {
+    async putBook(id: string, bookDto: BookDto): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Books/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -356,7 +334,7 @@ export class BooksClient {
 
         const content_ = JSON.stringify(bookDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "PUT",
             headers: {
@@ -365,17 +343,16 @@ export class BooksClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPutBook(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPutBook(_response);
     }
 
-    protected processPutBook(response: Response): Promise<FileResponse> {
+    protected async processPutBook(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -385,38 +362,36 @@ export class BooksClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    deleteBook(id: string): Promise<FileResponse> {
+    async deleteBook(id: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Books/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "DELETE",
             headers: {
                 "Accept": "application/octet-stream"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteBook(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processDeleteBook(_response);
     }
 
-    protected processDeleteBook(response: Response): Promise<FileResponse> {
+    protected async processDeleteBook(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -426,9 +401,8 @@ export class BooksClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
@@ -436,7 +410,7 @@ export class BooksClient {
 
 export class GenresClient {
     private http: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> };
-    private baseUrl: string;
+    private readonly baseUrl: string;
     protected jsonParseReviver: ((key: string, value: any) => any) | undefined = undefined;
 
     constructor(baseUrl?: string, http?: { fetch(url: RequestInfo, init?: RequestInit): Promise<Response> }) {
@@ -444,54 +418,51 @@ export class GenresClient {
         this.baseUrl = baseUrl ?? "http://localhost:5067";
     }
 
-    getGenres(): Promise<GenreDto[]> {
+    async getGenres(): Promise<GenreDto[]> {
         let url_ = this.baseUrl + "/api/Genres";
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGenres(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetGenres(_response);
     }
 
-    protected processGetGenres(response: Response): Promise<GenreDto[]> {
+    protected async processGetGenres(response: Response): Promise<GenreDto[]> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             if (Array.isArray(resultData200)) {
                 result200 = [] as any;
-                for (let item of resultData200)
+                for (const item of resultData200)
                     result200!.push(GenreDto.fromJS(item));
             }
             else {
-                result200 = <any>null;
+                result200 = null as any;
             }
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<GenreDto[]>(null as any);
     }
 
-    postGenre(genreDto: GenreDto): Promise<GenreDto> {
+    async postGenre(genreDto: GenreDto): Promise<GenreDto> {
         let url_ = this.baseUrl + "/api/Genres";
         url_ = url_.replace(/[?&]$/, "");
 
         const content_ = JSON.stringify(genreDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "POST",
             headers: {
@@ -500,67 +471,61 @@ export class GenresClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPostGenre(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPostGenre(_response);
     }
 
-    protected processPostGenre(response: Response): Promise<GenreDto> {
+    protected async processPostGenre(response: Response): Promise<GenreDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
+        if (status === 200 || status === 201) {
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = GenreDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<GenreDto>(null as any);
     }
 
-    getGenre(id: string): Promise<GenreDto> {
+    async getGenre(id: string): Promise<GenreDto> {
         let url_ = this.baseUrl + "/api/Genres/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "GET",
             headers: {
                 "Accept": "application/json"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetGenre(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processGetGenre(_response);
     }
 
-    protected processGetGenre(response: Response): Promise<GenreDto> {
+    protected async processGetGenre(response: Response): Promise<GenreDto> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            const _responseText = await response.text();
+            let result200: any;
+            const resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = GenreDto.fromJS(resultData200);
             return result200;
-            });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<GenreDto>(null as any);
     }
 
-    putGenre(id: string, genreDto: GenreDto): Promise<FileResponse> {
+    async putGenre(id: string, genreDto: GenreDto): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Genres/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
@@ -569,7 +534,7 @@ export class GenresClient {
 
         const content_ = JSON.stringify(genreDto);
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             body: content_,
             method: "PUT",
             headers: {
@@ -578,17 +543,16 @@ export class GenresClient {
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processPutGenre(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processPutGenre(_response);
     }
 
-    protected processPutGenre(response: Response): Promise<FileResponse> {
+    protected async processPutGenre(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -598,38 +562,36 @@ export class GenresClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
 
-    deleteGenre(id: string): Promise<FileResponse> {
+    async deleteGenre(id: string): Promise<FileResponse> {
         let url_ = this.baseUrl + "/api/Genres/{id}";
         if (id === undefined || id === null)
             throw new Error("The parameter 'id' must be defined.");
         url_ = url_.replace("{id}", encodeURIComponent("" + id));
         url_ = url_.replace(/[?&]$/, "");
 
-        let options_: RequestInit = {
+        const options_: RequestInit = {
             method: "DELETE",
             headers: {
                 "Accept": "application/octet-stream"
             }
         };
 
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteGenre(_response);
-        });
+        const _response = await this.http.fetch(url_, options_);
+        return await this.processDeleteGenre(_response);
     }
 
-    protected processDeleteGenre(response: Response): Promise<FileResponse> {
+    protected async processDeleteGenre(response: Response): Promise<FileResponse> {
         const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        const _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); }
         if (status === 200 || status === 206) {
             const contentDisposition = response.headers ? response.headers.get("content-disposition") : undefined;
-            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:[^\s]+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
+            let fileNameMatch = contentDisposition ? /filename\*=(?:(\\?['"])(.*?)\1|(?:\S+'.*?')?([^;\n]*))/g.exec(contentDisposition) : undefined;
             let fileName = fileNameMatch && fileNameMatch.length > 1 ? fileNameMatch[3] || fileNameMatch[2] : undefined;
             if (fileName) {
                 fileName = decodeURIComponent(fileName);
@@ -639,9 +601,8 @@ export class GenresClient {
             }
             return response.blob().then(blob => { return { fileName: fileName, data: blob, status: status, headers: _headers }; });
         } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
+            const _responseText = await response.text();
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
         }
         return Promise.resolve<FileResponse>(null as any);
     }
@@ -654,9 +615,9 @@ export class AuthorDto implements IAuthorDto {
 
     constructor(data?: IAuthorDto) {
         if (data) {
-            for (var property in data) {
+            for (const property in data) {
                 if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
+                    (this as any)[property] = (data as any)[property];
             }
         }
     }
@@ -667,7 +628,7 @@ export class AuthorDto implements IAuthorDto {
             this.name = _data["name"];
             if (Array.isArray(_data["bookIds"])) {
                 this.bookIds = [] as any;
-                for (let item of _data["bookIds"])
+                for (const item of _data["bookIds"])
                     this.bookIds!.push(item);
             }
         }
@@ -686,7 +647,7 @@ export class AuthorDto implements IAuthorDto {
         data["name"] = this.name;
         if (Array.isArray(this.bookIds)) {
             data["bookIds"] = [];
-            for (let item of this.bookIds)
+            for (const item of this.bookIds)
                 data["bookIds"].push(item);
         }
         return data;
@@ -708,9 +669,9 @@ export class BookDto implements IBookDto {
 
     constructor(data?: IBookDto) {
         if (data) {
-            for (var property in data) {
+            for (const property in data) {
                 if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
+                    (this as any)[property] = (data as any)[property];
             }
         }
     }
@@ -723,7 +684,7 @@ export class BookDto implements IBookDto {
             this.genreId = _data["genreId"];
             if (Array.isArray(_data["authorIds"])) {
                 this.authorIds = [] as any;
-                for (let item of _data["authorIds"])
+                for (const item of _data["authorIds"])
                     this.authorIds!.push(item);
             }
         }
@@ -744,7 +705,7 @@ export class BookDto implements IBookDto {
         data["genreId"] = this.genreId;
         if (Array.isArray(this.authorIds)) {
             data["authorIds"] = [];
-            for (let item of this.authorIds)
+            for (const item of this.authorIds)
                 data["authorIds"].push(item);
         }
         return data;
@@ -766,9 +727,9 @@ export class GenreDto implements IGenreDto {
 
     constructor(data?: IGenreDto) {
         if (data) {
-            for (var property in data) {
+            for (const property in data) {
                 if (data.hasOwnProperty(property))
-                    (<any>this)[property] = (<any>data)[property];
+                    (this as any)[property] = (data as any)[property];
             }
         }
     }
@@ -779,7 +740,7 @@ export class GenreDto implements IGenreDto {
             this.name = _data["name"];
             if (Array.isArray(_data["bookIds"])) {
                 this.bookIds = [] as any;
-                for (let item of _data["bookIds"])
+                for (const item of _data["bookIds"])
                     this.bookIds!.push(item);
             }
         }
@@ -798,7 +759,7 @@ export class GenreDto implements IGenreDto {
         data["name"] = this.name;
         if (Array.isArray(this.bookIds)) {
             data["bookIds"] = [];
-            for (let item of this.bookIds)
+            for (const item of this.bookIds)
                 data["bookIds"].push(item);
         }
         return data;
