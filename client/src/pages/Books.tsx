@@ -37,18 +37,18 @@ const BookForm = ({
     </div>
     <div className="form-control">
       <label className="label"><span className="label-text">Pages</span></label>
-      <input type="number" name="pages" placeholder="Number of Pages" className="input input-bordered" value={formData.pages} onChange={handlePagesChange} required />
+      <input type="number" name="pages" placeholder="Number of Pages" className="input input-bordered" value={formData.pages} onChange={handlePagesChange} required min="1" />
     </div>
     <div className="form-control">
       <label className="label"><span className="label-text">Genre</span></label>
-      <select name="genreId" className="select select-bordered" value={formData.genreId || ''} onChange={handleFormChange}>
+      <select name="genreId" className="select select-bordered" value={formData.genreId || ''} onChange={handleFormChange} required>
         <option disabled value="">Select a genre</option>
         {genres.map(genre => <option key={genre.id} value={genre.id}>{genre.name}</option>)}
       </select>
     </div>
     <div className="form-control">
       <label className="label"><span className="label-text">Authors</span></label>
-      <select multiple name="authorIds" className="select select-bordered" value={formData.authorIds} onChange={handleFormChange}>
+      <select multiple name="authorIds" className="select select-bordered" value={formData.authorIds} onChange={handleFormChange} required>
         {authors.map(author => <option key={author.id} value={author.id}>{author.name}</option>)}
       </select>
     </div>
@@ -213,6 +213,8 @@ export default function Books() {
             <tr>
               <th></th>
               <th>Title</th>
+              <th>Authors</th>
+              <th>Genre</th>
               <th>Pages</th>
               <th>Actions</th>
             </tr>
@@ -222,6 +224,15 @@ export default function Books() {
               <tr key={book.id} className="hover">
                 <th>{index + 1}</th>
                 <td>{book.title}</td>
+                <td>
+                  {book.authorIds.map(authorId => {
+                    const author = authors.find(a => a.id === authorId);
+                    return author ? author.name : '';
+                  }).join(', ')}
+                </td>
+                <td>
+                  {genres.find(g => g.id === book.genreId)?.name}
+                </td>
                 <td>{book.pages}</td>
                 <td>
                   <button className="btn btn-sm btn-outline btn-info mr-2" onClick={() => openEditModal(book)}>Edit</button>
